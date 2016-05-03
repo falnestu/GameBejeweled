@@ -228,6 +228,9 @@ function GameObject() {
 	this.Start = function() {
 		if (!this.started) {
 			// operation start
+			if (this.Physics.ColliderIsSameSizeAsTransform) {
+				this.Physics.Collider = this.Transform;
+			}
 			this.started = true;
 			console.log('%c System:GameObject ' + this.name + " Started !", 'background:#222; color:#bada55');
 		}

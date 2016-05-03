@@ -45,6 +45,10 @@ function SceneGame() {
 
 	this.started = false;
 
+	this.selectedGem = null;
+	this.switchGem = null;
+	this.matchGems = [];
+
 	this.Awake = function() {
 		console.clear();
 		console.log('%c System:Scene ' + this.name + " Created !", 'background:#222; color:#bada55');
@@ -54,6 +58,7 @@ function SceneGame() {
 		if (!this.started) {
 			Time.SetTimeWhenSceneBegin();
 			// operation start
+			this.insertGems();
 			this.started = true;
 			console.log('%c System:Scene ' + this.name + " Started !", 'background:#222; color:#bada55');
 			Time.SetTimeWhenSceneLoaded();
@@ -63,9 +68,15 @@ function SceneGame() {
 
 	this.Update = function() {
 		if (!Application.GamePaused) {
+
 			for (var i = 0; i < this.GameObjects.length; i++) {
-				//this.GameObjects[i].Start();
+				this.GameObjects[i].Start();
 			}
+			this.matchGems.forEach( function(element, index) {
+				ctx.strokeStyle = "BLACK";
+				ctx.lineHeight = 5;
+				ctx.strokeRect(element.Transform.position.x, element.Transform.position.y, CONSTANTS_GEM.SIZE.x * CONSTANTS_GEM.SCALE, CONSTANTS_GEM.SIZE.y * CONSTANTS_GEM.SCALE);
+			});
 		}
 		this.GUI();
 	}
@@ -76,10 +87,48 @@ function SceneGame() {
 		} else {
 			// Show pause menu
 		}
-		if(Application.debugMode)
-		{
-			Debug.debugScene();
+		Debug.debugScene();
+		/*Debug.debugObject(this.GameObjects[0]);*/
+
+	}
+
+	this.insertGems = function() {
+		var offset = {
+			x : (canvas.width - COLUMNS * Images["blueGem"].width * CONSTANTS_GEM.SCALE) / 2,
+			y : (canvas.height - ROWS * Images["blueGem"].height * CONSTANTS_GEM.SCALE) / 2
 		}
+
+		for (var x = 0; x < COLUMNS; x++) {
+			for (var y = 0; y < ROWS; y++) {
+				var gem = new GameObjectGem();
+				/* RANDOM GEMS */
+				switch (Math.Random.RangeInt(0,2,true)) {
+					case 0:
+						gem.Renderer.Material.Source = Images["blueGem"];
+						break;
+					case 1:
+						gem.Renderer.Material.Source = Images["greenGem"];
+						break;
+					case 2:
+						gem.Renderer.Material.Source = Images["orangeGem"];
+						break;
+					default:
+						console.log("Error in random color Gem");
+						break;
+				}
+				gem.Transform.position.x = x * gem.Transform.size.x * gem.Transform.scale.x + offset.x;
+				gem.Transform.position.y = y * gem.Transform.size.y * gem.Transform.scale.y + offset.y;
+				this.GameObjects.push(gem);
+			}
+		}
+	}
+
+	this.switchGems = function() {
+		var tempImage = this.selectedGem.Renderer.Material.Source;
+		this.selectedGem.Renderer.Material.Source = this.switchGem.Renderer.Material.Source;
+		this.switchGem.Renderer.Material.Source = tempImage;
+		this.selectedGem.checkMatch();
+		this.switchGem.checkMatch();
 	}
 
 	this.Awake()

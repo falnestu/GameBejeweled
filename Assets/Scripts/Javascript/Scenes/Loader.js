@@ -59,7 +59,6 @@ function Loader() {
 			// operation start
 			LoadImages();
 			Scenes.SceneGame = new SceneGame();
-			insertGems();
 			this.started = true;
 			console.log('%c System:Scene ' + this.name + " Started !", 'background:#222; color:#bada55');
 			Time.SetTimeWhenGameLoaded();
@@ -68,28 +67,26 @@ function Loader() {
 	}
 
 	this.Update = function() {
-			ctx.fillStyle = "rgb(230, 230, 230)";
-			ctx.fillRect(0,0, canvas.width, canvas.height);
-			ctx.drawImage(this.logo, canvas.width * .5 - this.logo.width *.5, canvas.height *.3);
-			for (var i = 0; i < this.GameObjects.length; i++) {
-				//this.GameObjects[i].Start();
-			}
-			if (this.imageLoaded == ImagesPath.length) {
-				Application.LoadedScene = Scenes.SceneGame;
-			}
+		ctx.fillStyle = "rgb(230, 230, 230)";
+		ctx.fillRect(0,0, canvas.width, canvas.height);
+		ctx.drawImage(this.logo, canvas.width * .5 - this.logo.width *.5, canvas.height *.3);
+		for (var i = 0; i < this.GameObjects.length; i++) {
+			//this.GameObjects[i].Start();
+		}
+		if (this.imageLoaded == ImagesPath.length) {
+			Application.LoadedScene = Scenes.SceneGame;
+		}
 		this.GUI();
 	}
 	this.GUI = function() {
-			ctx.strokeStyle = "grey";
-			ctx.strokeRect( canvas.width / 2 - 200, 500, 400, 20);
-			ctx.fillStyle = "grey";
-			var portion = 400 / ImagesPath.length;
-			ctx.RoundedBox( canvas.width / 2 - 198, 503, this.imageLoaded * portion - 4, 15, 6);
+		ctx.strokeStyle = "grey";
+		ctx.strokeRect( canvas.width / 2 - 200, 500, 400, 20);
+		ctx.fillStyle = "grey";
+		var portion = 400 / ImagesPath.length;
+		ctx.RoundedBox( canvas.width / 2 - 198, 503, this.imageLoaded * portion - 4, 15, 6);
 		
-		if(Application.debugMode)
-		{
-			Debug.debugScene();
-		}
+		Debug.debugScene();
+		
 	}
 
 	this.Awake()

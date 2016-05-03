@@ -128,11 +128,11 @@ var Physics = {
 		mPos.y = Input.MousePosition.y;
 		for (index in GOs) {
 			var go = GOs[index];
-			if (go.Physics.Clickable) {
+			if (Input.MouseClick && go.Physics.Clickable) {
 				var hitbox = new Box(go.Physics.Collider.position.x,
 									go.Physics.Collider.position.y,
-									go.Physics.Collider.size.x,
-									go.Physics.Collider.size.y);
+									go.Physics.Collider.size.x * go.Physics.Collider.scale.x,
+									go.Physics.Collider.size.y * go.Physics.Collider.scale.y);
 				if (go.Physics.countHovered > 0) {
 					if (!Physics.CheckCollision(mPos, hitbox)) {
 						go.onUnHovered();

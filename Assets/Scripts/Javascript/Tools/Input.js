@@ -12,7 +12,7 @@ var Input = {
 	MouseDown: function(e) {
 		Input.MouseClick = true;
 		Input.MouseLongClick = true;
-		Input.MouseReload = 1;		
+		Input.MouseReload = 1;
 	},
 	MouseMove: function(e) {
 		var rect = canvas.getBoundingClientRect();

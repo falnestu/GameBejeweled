@@ -138,18 +138,18 @@ function GameObjectGem() {
 	this.enabled = true;
 	this.started = false;
 	this.rendered = true;
-	
+
 	this.Transform = {};
 	this.Transform.position = new Vector();
 	this.Transform.size = new Vector();
-	this.Transform.scale = new Vector(1,1);
+	this.Transform.scale = new Vector(CONSTANTS_GEM.SCALE,CONSTANTS_GEM.SCALE);
 	this.Transform.pivot = new Vector(0,0);
 
 	this.Physics = {};
 	this.Physics.enabled = true;
-	this.Physics.Clickable = false;
+	this.Physics.Clickable = true;
 	this.Physics.dragAndDroppable = false;
-	this.Physics.ColliderIsSameSizeAsTransform = false;
+	this.Physics.ColliderIsSameSizeAsTransform = true;
 	this.Physics.countHovered = 0;
 	this.Physics.Collider = {
 		position: new Vector(),
@@ -223,34 +223,117 @@ function GameObjectGem() {
 
 
 	this.Awake = function() {
+		this.Transform.size.x = CONSTANTS_GEM.SIZE.x;
+		this.Transform.size.y = CONSTANTS_GEM.SIZE.y;
 		console.log('%c System:GameObject ' + this.name + " Created !", 'background:#222; color:#b00b55');
 	};
+
 	this.Start = function() {
 		if (!this.started) {
 			// operation start
+			if (this.Physics.ColliderIsSameSizeAsTransform) {
+				this.Physics.Collider = this.Transform;
+			}
 			this.started = true;
 			console.log('%c System:GameObject ' + this.name + " Started !", 'background:#222; color:#bada55');
 		}
+
 		this.Update();
 	};
 	this.Update = function() {
 		if ( this.enabled ) {
-
+			if (this.rendered) {
+				this.Renderer.Draw();
+			}
 		}
 		this.GUI();	
 	};
+
 	this.GUI = function() {
-		
+		if (Scenes["SceneGame"].selectedGem == this) {
+			var scaledSizeX = this.Transform.size.x*this.Transform.scale.x;
+			var scaledSizeY = this.Transform.size.y*this.Transform.scale.y;
+			ctx.strokeStyle = "red";
+			ctx.lineHeight = 5;
+			ctx.strokeRect(this.Transform.position.x-this.Transform.pivot.x*scaledSizeX,
+							this.Transform.position.y-this.Transform.pivot.y*scaledSizeY,
+							scaledSizeX,
+							scaledSizeY)
+		}
 	}
+
 	this.onHover = function() {
 		this.Physics.countHovered ++;
-		
 	}
+
 	this.onClicked = function() {
+		if (!Scenes["SceneGame"].selectedGem) {
+			Scenes["SceneGame"].selectedGem = this;
+		}
+		else {
+			if (Scenes["SceneGame"].selectedGem == this) {
+				delete Scenes["SceneGame"].selectedGem;
+			}else {
+				
+				if (this.isNeighbouring(Scenes["SceneGame"].selectedGem)) {
+					Scenes["SceneGame"].switchGem = this;
+					Scenes["SceneGame"].switchGems();
+				}
+				else {
+					Scenes["SceneGame"].selectedGem = this;
+				}
+			}
+		}
 		this.Physics.countHovered ++;
 	}
+
 	this.onUnHovered = function() {
 		this.Physics.countHovered = 0;
+	}
+
+	this.isNeighbouring = function (go) {
+		var scaledSizeX = this.Transform.size.x*this.Transform.scale.x;
+		var scaledSizeY = this.Transform.size.y*this.Transform.scale.y;
+		var dist = {
+			x : go.Transform.position.x - this.Transform.position.x,
+			y : go.Transform.position.y - this.Transform.position.y
+		}
+		return dist.x == 0 && Math.abs(dist.y) == scaledSizeY ||
+				dist.y == 0 && Math.abs(dist.x) == scaledSizeX;
+	}
+
+	this.CheckNext = function(x,y,group) {
+		var nextNeighbour = Scenes["SceneGame"].GameObjects.find(el => el.Transform.position.x == this.Transform.position.x + x && el.Transform.position.y == this.Transform.position.y + y && el.Renderer.Material.Source == this.Renderer.Material.Source);
+		if (nextNeighbour) {
+			group.push(nextNeighbour);
+			nextNeighbour.CheckNext(x,y,group);
+		}
+	}
+
+	this.checkMatch = function() {
+		//HORIZONTAL MATCHES
+		var leftGroup = [];
+		this.CheckNext(-CONSTANTS_GEM.dist.x,0,leftGroup);
+		var rightGroup = [];
+		this.CheckNext(CONSTANTS_GEM.dist.x,0,rightGroup);	
+		if (leftGroup.length + rightGroup.length > 1) {
+			Scenes["SceneGame"].matchGems.push(this);
+			Scenes["SceneGame"].matchGems = Scenes["SceneGame"].matchGems.concat(leftGroup.concat(rightGroup));
+		}
+
+		//VERTICAL MATCHES
+		var bottomGroup = [];
+		this.CheckNext(0,-CONSTANTS_GEM.dist.y,bottomGroup);		
+		var upGroup = [];
+		this.CheckNext(0,CONSTANTS_GEM.dist.y,upGroup);		
+		if (bottomGroup.length + upGroup.length > 1) {
+			if (Scenes["SceneGame"].matchGems.indexOf(this) == -1) {
+				Scenes["SceneGame"].matchGems.push(this);
+			}
+			Scenes["SceneGame"].matchGems = Scenes["SceneGame"].matchGems.concat(bottomGroup.concat(upGroup));
+		}
+
+
 	}
 
 	this.Awake();
